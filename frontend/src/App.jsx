@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
-  Home, Search, Bell, Bookmark, User, Settings,
+  Home, Search, Bookmark,
   Heart, MessageCircle, Share2, MoreHorizontal,
-  Zap, ExternalLink, TrendingUp, Bot, BarChart2,
+  Zap, ExternalLink, TrendingUp, Bot,
   Flame, Star, Hash, ChevronRight, Radio, Shield,
   Cloud, Code2, Cpu, Globe, GitBranch, Filter
 } from "lucide-react";
@@ -14,6 +14,7 @@ import {
 const ARTICLES = [
   {
     id: 1,
+    topic: "AI & ML",
     source: "The Verge",
     sourceHandle: "@verge",
     sourceInitials: "TV",
@@ -39,6 +40,7 @@ const ARTICLES = [
   {
     id: 2,
     source: "TechCrunch",
+    topic: "Startups",
     sourceHandle: "@techcrunch",
     sourceInitials: "TC",
     sourceGradient: "from-green-500 to-emerald-600",
@@ -63,6 +65,7 @@ const ARTICLES = [
   {
     id: 3,
     source: "Ars Technica",
+    topic: "Cloud",
     sourceHandle: "@arstechnica",
     sourceInitials: "AT",
     sourceGradient: "from-red-700 to-red-500",
@@ -86,6 +89,7 @@ const ARTICLES = [
   },
   {
     id: 4,
+    topic: "Open Source",
     source: "Hacker News",
     sourceHandle: "@hackernews",
     sourceInitials: "HN",
@@ -110,6 +114,7 @@ const ARTICLES = [
   },
   {
     id: 5,
+    topic: "Research",
     source: "MIT Tech Review",
     sourceHandle: "@techreview",
     sourceInitials: "MT",
@@ -134,6 +139,7 @@ const ARTICLES = [
   },
   {
     id: 6,
+    topic: "Startups",
     source: "Wired",
     sourceHandle: "@wired",
     sourceInitials: "WR",
@@ -158,6 +164,7 @@ const ARTICLES = [
   },
   {
     id: 7,
+    topic: "Cybersecurity",
     source: "Krebs on Security",
     sourceHandle: "@krebsonsec",
     sourceInitials: "KS",
@@ -254,41 +261,25 @@ const TRENDING_TOPICS = [
   { rank: 7, tag: "QuantumComputing", category: "Research", posts: "12.8K", hot: false },
 ];
 
-const SUGGESTED_SOURCES = [
-  {
-    name: "Andrej Karpathy",
-    handle: "@karpathy",
-    initials: "AK",
-    gradient: "from-violet-500 to-purple-700",
-    desc: "AI Researcher",
-  },
-  {
-    name: "Swyx",
-    handle: "@swyx",
-    initials: "SW",
-    gradient: "from-sky-500 to-blue-700",
-    desc: "AI Engineer & Writer",
-  },
-  {
-    name: "Simon Willison",
-    handle: "@simonw",
-    initials: "SL",
-    gradient: "from-emerald-500 to-teal-700",
-    desc: "Django creator · AI tools",
-  },
-];
-
 const NAV_ITEMS = [
   { icon: Home, label: "Home" },
   { icon: Search, label: "Explore" },
-  { icon: Bell, label: "Alerts" },
   { icon: Bookmark, label: "Saved" },
-  { icon: BarChart2, label: "Insights" },
-  { icon: User, label: "Profile" },
-  { icon: Settings, label: "Settings" },
 ];
 
-const FEED_TABS = ["For You", "Following", "AI & ML", "Startups", "Dev Tools", "Security"];
+const FEED_TABS = [
+  "For You",
+  "Following",
+  "AI & ML",
+  "Software Engineering",
+  "Cybersecurity",
+  "Cloud",
+  "Startups",
+  "Open Source",
+  "Research",
+  "Jobs",
+  "Hackathons"
+];
 
 // ─────────────────────────────────────────────────
 //  UTILITY
@@ -353,9 +344,9 @@ function TrendingBadge() {
 
 function LeftSidebar({ activeNav, setActiveNav }) {
   return (
-    <aside className="w-[64px] xl:w-[220px] flex-shrink-0 border-r border-zinc-800/50 flex flex-col h-screen sticky top-0 px-2 xl:px-3 py-4">
+    <aside className="w-[64px] xl:w-[220px] flex-shrink-0 border-r border-zinc-800/50 flex flex-col h-screen">
       {/* Logo */}
-      <div className="px-2 xl:px-3 mb-6 flex items-center gap-2.5">
+      <div className="px-2 xl:px-3 pt-4 mb-6 flex items-center gap-2.5">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/25">
           <Zap size={17} className="text-white" fill="white" />
         </div>
@@ -469,7 +460,9 @@ function NewsCard({ article }) {
               <TagPill key={tag} tag={tag} colorClass={article.tagColors?.[tag]} />
             ))}
             {article.readTime && (
-              <span className="text-[10px] text-zinc-600 font-medium">· {article.readTime}</span>
+              <span className="text-[10px] text-zinc-500 ml-2">
+                📖 {article.readTime} read
+              </span>
             )}
           </div>
 
@@ -553,7 +546,9 @@ function RecommendedCard({ article }) {
         {article.tags.map((tag) => (
           <TagPill key={tag} tag={tag} colorClass={article.tagColors?.[tag]} />
         ))}
-        <span className="text-[10px] text-zinc-600">· {article.readTime}</span>
+        <span className="text-[10px] text-zinc-500 ml-2">
+          📖 {article.readTime} read
+        </span>
       </div>
 
       {/* Bottom: reason + actions */}
@@ -588,8 +583,22 @@ function RecommendedCard({ article }) {
 function MainFeed() {
   const [activeTab, setActiveTab] = useState("For You");
 
+  const filteredArticles =
+  activeTab === "For You"
+    ? ARTICLES
+    : activeTab === "Following"
+    ? ARTICLES.filter(
+        (article) =>
+          article.topic === "AI & ML" ||
+          article.topic === "Startups" ||
+          article.topic === "Cloud"
+      )
+    : ARTICLES.filter(
+        (article) => article.topic === activeTab
+      );
+
   return (
-    <main className="flex-1 min-w-0 border-r border-zinc-800/50 flex flex-col">
+    <main className="flex-1 min-w-0 border-r border-zinc-800/50 flex flex-col h-screen overflow-hidden">
       {/* Sticky header */}
       <div className="sticky top-0 z-20 bg-[#0a0a0f]/90 backdrop-blur-md border-b border-zinc-800/50">
         <div className="px-4 pt-3 pb-0">
@@ -619,45 +628,57 @@ function MainFeed() {
       </div>
 
       {/* Article feed */}
-      <div>
-        {ARTICLES.map((article) => (
-          <NewsCard key={article.id} article={article} />
-        ))}
-      </div>
+      <div className="flex-1 overflow-y-auto">
+        {filteredArticles.length > 0 ? (
+          filteredArticles.map((article) => (
+            <NewsCard key={article.id} article={article} />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <h3 className="text-white font-bold text-lg mb-2">
+              No articles yet
+            </h3>
 
-      {/* ── ML Recommended Section ── */}
-      <section className="border-t-4 border-zinc-800/60 px-4 pt-6 pb-8">
-        {/* Section header */}
-        <div className="flex items-center gap-3 mb-1.5">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-700 flex items-center justify-center">
-              <Bot size={12} className="text-white" />
-            </div>
-            <h2 className="text-[15px] font-black text-white">Recommended For You</h2>
+            <p className="text-zinc-500 text-sm">
+              Relevant articles will appear here as new content is indexed.
+            </p>
           </div>
-          <div className="flex-1 h-px bg-gradient-to-r from-violet-500/30 via-violet-500/10 to-transparent" />
-          <span className="text-[9px] font-black text-violet-300 bg-violet-500/15 border border-violet-500/25 px-2 py-0.5 rounded-full tracking-widest uppercase">
-            ML POWERED
-          </span>
-        </div>
+        )}
 
-        <p className="text-[11px] text-zinc-500 mb-5 pl-0.5">
-          Personalized via TF-IDF vectorization + cosine similarity on your reading history.
-        </p>
+        {/* ── ML Recommended Section ── */}
+        <section className="border-t-4 border-zinc-800/60 px-4 pt-6 pb-8">
+          {/* Section header */}
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-700 flex items-center justify-center">
+                <Bot size={12} className="text-white" />
+              </div>
+              <h2 className="text-[15px] font-black text-white">Recommended For You</h2>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-violet-500/30 via-violet-500/10 to-transparent" />
+            <span className="text-[9px] font-black text-violet-300 bg-violet-500/15 border border-violet-500/25 px-2 py-0.5 rounded-full tracking-widest uppercase">
+              ML POWERED
+            </span>
+          </div>
 
-        {/* Recommendation cards */}
-        <div className="space-y-3">
-          {RECOMMENDED_ARTICLES.map((article) => (
-            <RecommendedCard key={article.id} article={article} />
-          ))}
-        </div>
+          <p className="text-[11px] text-zinc-500 mb-5 pl-0.5">
+            Personalized via TF-IDF vectorization + cosine similarity on your reading history.
+          </p>
 
-        {/* Load more */}
-        <button className="w-full mt-4 py-3 rounded-2xl border border-zinc-800 hover:border-violet-500/40 text-[13px] font-semibold text-zinc-500 hover:text-violet-400 hover:bg-violet-500/[0.04] transition-all flex items-center justify-center gap-2">
-          <ChevronRight size={15} />
-          Load More Recommendations
-        </button>
-      </section>
+          {/* Recommendation cards */}
+          <div className="space-y-3">
+            {RECOMMENDED_ARTICLES.map((article) => (
+              <RecommendedCard key={article.id} article={article} />
+            ))}
+          </div>
+
+          {/* Load more */}
+          <button className="w-full mt-4 py-3 rounded-2xl border border-zinc-800 hover:border-violet-500/40 text-[13px] font-semibold text-zinc-500 hover:text-violet-400 hover:bg-violet-500/[0.04] transition-all flex items-center justify-center gap-2">
+            <ChevronRight size={15} />
+            Load More Recommendations
+          </button>
+        </section>
+      </div>
     </main>
   );
 }
@@ -690,7 +711,7 @@ function RightSidebar() {
   const [search, setSearch] = useState("");
 
   return (
-    <aside className="w-[280px] flex-shrink-0 h-screen sticky top-0 overflow-y-auto px-3 py-4 space-y-4"
+    <aside className="w-[280px] flex-shrink-0 h-screen overflow-y-auto px-3 py-4 space-y-4"
       style={{ scrollbarWidth: "none" }}>
 
       {/* Search */}
@@ -698,7 +719,7 @@ function RightSidebar() {
         <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" />
         <input
           type="text"
-          placeholder="Search SIGNAL..."
+          placeholder="Search companies, tech, topics..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full bg-zinc-800/50 border border-zinc-700/40 rounded-full pl-8 pr-4 py-2 text-[12px] text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-violet-500/50 focus:bg-zinc-800 transition-all"
@@ -719,30 +740,6 @@ function RightSidebar() {
         <button className="w-full px-4 py-3 text-left hover:bg-white/[0.03] transition-colors">
           <span className="text-[12px] text-violet-400 font-semibold">Show all trending →</span>
         </button>
-      </div>
-
-      {/* Top Tech Voices */}
-      <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-2xl overflow-hidden">
-        <div className="px-4 pt-3.5 pb-2.5 border-b border-zinc-800/40">
-          <h3 className="text-[13px] font-black text-white">Top Tech Voices</h3>
-        </div>
-        <div className="divide-y divide-zinc-800/40">
-          {SUGGESTED_SOURCES.map((src) => (
-            <div
-              key={src.handle}
-              className="flex items-center gap-2.5 px-4 py-3 hover:bg-white/[0.03] cursor-pointer group"
-            >
-              <Avatar initials={src.initials} gradient={src.gradient} size="sm" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-bold text-white truncate">{src.name}</p>
-                <p className="text-[10px] text-zinc-500 truncate">{src.desc}</p>
-              </div>
-              <button className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-zinc-700 text-zinc-400 hover:border-violet-500/60 hover:text-violet-300 hover:bg-violet-500/10 transition-all flex-shrink-0">
-                Follow
-              </button>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ML Engine Status Card */}
@@ -833,7 +830,7 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-[#0a0a0f] text-white flex overflow-hidden"
+      className="h-screen bg-[#0a0a0f] text-white flex overflow-hidden"
       style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" }}
     >
       <LeftSidebar activeNav={activeNav} setActiveNav={setActiveNav} />
