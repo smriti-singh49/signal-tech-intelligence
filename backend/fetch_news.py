@@ -6,12 +6,10 @@ API_KEY = "pub_08a73ea1cec74734811458c9533d0b6a"
 
 def fetch_tech_news():
 
-    query = "technology OR AI OR software"
-
     url = (
         f"https://newsdata.io/api/1/latest?"
         f"apikey={API_KEY}"
-        f"&q={query}"
+        f"&category=technology"
         f"&language=en"
     )
 
@@ -19,14 +17,14 @@ def fetch_tech_news():
 
     next_page = None
 
-    for page_num in range(5):
+    for page_num in range(1):
 
         if page_num == 0:
 
             url = (
                 f"https://newsdata.io/api/1/latest?"
                 f"apikey={API_KEY}"
-                f"&q={query}"
+                f"&category=technology"
                 f"&language=en"
             )
 
@@ -35,7 +33,7 @@ def fetch_tech_news():
             url = (
                 f"https://newsdata.io/api/1/latest?"
                 f"apikey={API_KEY}"
-                f"&q={query}"
+                f"&category=technology"
                 f"&language=en"
                 f"&page={next_page}"
             )
@@ -43,6 +41,7 @@ def fetch_tech_news():
         response = requests.get(url)
 
         data = response.json()
+        print(data)
 
         if data.get("status") != "success":
             break
@@ -51,7 +50,7 @@ def fetch_tech_news():
             data.get("results", [])
         )
 
-        # next_page = data.get("nextPage")
+        next_page = data.get("nextPage")
 
         if not next_page:
             break
@@ -116,7 +115,7 @@ def fetch_tech_news():
                     if keyword in combined_text
                 ]
 
-                if len(matched_keywords) >= 2:
+                if len(matched_keywords) >= 1:
 
                     news_data.append({
                         "title": article.get("title"),

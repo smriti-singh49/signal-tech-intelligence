@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Home, Search, Bookmark,
   Heart, MessageCircle, Share2, MoreHorizontal,
@@ -411,7 +411,7 @@ function LeftSidebar({ activeNav, setActiveNav }) {
 function NewsCard({ article, onClick }) {
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
-  const [likeCount, setLikeCount] = useState(article.likes);
+  const [likeCount, setLikeCount] = useState(article.likes || 0);
 
   const toggleLike = (e) => {
     e.stopPropagation();
@@ -459,7 +459,7 @@ function NewsCard({ article, onClick }) {
 
           {/* Tags + read time */}
           <div className="flex flex-wrap items-center gap-1.5 mb-3">
-            {article.tags.map((tag) => (
+            {article.tags?.map((tag) => (
               <TagPill key={tag} tag={tag} colorClass={article.tagColors?.[tag]} />
             ))}
             {article.readTime && (
@@ -474,7 +474,9 @@ function NewsCard({ article, onClick }) {
             <div className="flex items-center gap-5">
               <button className="flex items-center gap-1.5 text-zinc-600 hover:text-sky-400 transition-colors">
                 <MessageCircle size={14} />
-                <span className="text-[11px] font-semibold">{fmtCount(article.comments)}</span>
+                <span className="text-[11px] font-semibold">
+                  {fmtCount(article.comments || 0)}
+                </span>
               </button>
               <button
                 onClick={toggleLike}
@@ -492,7 +494,7 @@ function NewsCard({ article, onClick }) {
                 }`}
               >
                 <Bookmark size={14} className={bookmarked ? "fill-violet-400" : ""} />
-                <span className="text-[11px] font-semibold">{fmtCount(article.bookmarks)}</span>
+                <span className="text-[11px] font-semibold">{fmtCount(article.bookmarks || 0)}</span>
               </button>
             </div>
             <button className="text-zinc-600 hover:text-violet-400 transition-colors p-1 rounded-full hover:bg-violet-500/10">
@@ -588,6 +590,31 @@ function MainFeed({
   setSelectedArticle,
 }) {
   const [activeTab, setActiveTab] = useState("For You");
+
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/news")
+      .then((response) => response.json())
+      .then((data) => {
+        setArticles(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching news:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-zinc-400">
+        Loading news...
+      </div>
+    );
+  }
+
   if (selectedArticle) {
   return (
     <ArticleDetail
@@ -599,7 +626,7 @@ function MainFeed({
 
   const filteredArticles =
   activeTab === "For You"
-    ? ARTICLES
+    ? articles
     : activeTab === "Following"
     ? ARTICLES.filter(
         (article) =>
@@ -865,24 +892,44 @@ function ArticleDetail({ article, onBack }) {
         </h1>
 
         <div className="text-zinc-500 text-sm mb-6">
-          Published {article.timestamp} ago
+          Source: {article.source}
         </div>
 
         <p className="text-zinc-300 leading-8 text-[15px] mb-8">
           {article.description}
         </p>
 
-        <div className="space-y-4 text-zinc-400">
+        <div className="space-y-4 text-zinc-300 leading-7">
           <p>
-            This is where the complete article content will appear.
-          </p>
+            {
+              article.content &&
+              !article.content.includes("ONLY AVAILABLE IN PAID PLANS")
+                ? article.content
+                : "Read the full article on the original source."
+            }
 
-          <p>
-            Later we can fetch full news descriptions from the backend.
-          </p>
+            <a
+              href={article.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="
+                inline-flex
+                items-center
+                gap-2
+                mt-8
+                px-5
+                py-3
+                rounded-xl
+                bg-violet-600
+                hover:bg-violet-500
+                transition
+                font-semibold
+                text-white
+              "
+            >
+              Read Original Article →
+            </a>
 
-          <p>
-            For now this acts as a placeholder detail page.
           </p>
         </div>
 
