@@ -29,8 +29,12 @@ def recommend_articles(df, selected_article):
 
     for i in sorted_articles[1:6]:
 
-        recommended_articles.append(
-            df.iloc[i[0]]["title"]
-        )
+        recommended_articles.append({
+            "title": df.iloc[i[0]]["title"],
+            "description": df.iloc[i[0]]["description"],
+            "source": df.iloc[i[0]]["source"],
+            "link": df.iloc[i[0]]["link"],
+            "similarity_score": round(i[1] * 100, 2)
+        })
 
     return recommended_articles

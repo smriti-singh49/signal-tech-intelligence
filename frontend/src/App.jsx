@@ -408,7 +408,7 @@ function LeftSidebar({ activeNav, setActiveNav }) {
 //  NEWS CARD
 // ─────────────────────────────────────────────────
 
-function NewsCard({ article }) {
+function NewsCard({ article, onClick }) {
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(article.likes);
@@ -424,7 +424,10 @@ function NewsCard({ article }) {
   };
 
   return (
-    <article className="border-b border-zinc-800/50 px-4 py-4 hover:bg-white/[0.015] transition-colors cursor-pointer group">
+      <article
+        onClick={onClick}
+        className="border-b border-zinc-800/50 px-4 py-4 hover:bg-white/[0.015] transition-colors cursor-pointer group"
+      >
       <div className="flex gap-3">
         <Avatar initials={article.sourceInitials} gradient={article.sourceGradient} size="md" />
 
@@ -580,8 +583,19 @@ function RecommendedCard({ article }) {
 //  MAIN FEED
 // ─────────────────────────────────────────────────
 
-function MainFeed() {
+function MainFeed({
+  selectedArticle,
+  setSelectedArticle,
+}) {
   const [activeTab, setActiveTab] = useState("For You");
+  if (selectedArticle) {
+  return (
+    <ArticleDetail
+      article={selectedArticle}
+      onBack={() => setSelectedArticle(null)}
+    />
+  );
+  }
 
   const filteredArticles =
   activeTab === "For You"
@@ -631,7 +645,11 @@ function MainFeed() {
       <div className="flex-1 overflow-y-auto">
         {filteredArticles.length > 0 ? (
           filteredArticles.map((article) => (
-            <NewsCard key={article.id} article={article} />
+            <NewsCard
+              key={article.id}
+              article={article}
+              onClick={() => setSelectedArticle(article)}
+            />
           ))
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -821,12 +839,77 @@ function RightSidebar() {
   );
 }
 
+function ArticleDetail({ article, onBack }) {
+  return (
+    <div className="flex-1 overflow-y-auto">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
+        <button
+          onClick={onBack}
+          className="text-sm font-semibold text-violet-400 hover:text-violet-300"
+        >
+          ← Back
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl px-6 py-6">
+        <div className="mb-4">
+          <span className="text-zinc-500 text-sm">
+            {article.source}
+          </span>
+        </div>
+
+        <h1 className="text-3xl font-black text-white mb-4 leading-tight">
+          {article.title}
+        </h1>
+
+        <div className="text-zinc-500 text-sm mb-6">
+          Published {article.timestamp} ago
+        </div>
+
+        <p className="text-zinc-300 leading-8 text-[15px] mb-8">
+          {article.description}
+        </p>
+
+        <div className="space-y-4 text-zinc-400">
+          <p>
+            This is where the complete article content will appear.
+          </p>
+
+          <p>
+            Later we can fetch full news descriptions from the backend.
+          </p>
+
+          <p>
+            For now this acts as a placeholder detail page.
+          </p>
+        </div>
+
+        {/* Discussion */}
+        <div className="mt-12 border-t border-zinc-800 pt-8">
+          <h2 className="text-xl font-bold text-white mb-4">
+            Discussion
+          </h2>
+
+          <div className="bg-zinc-900 rounded-xl p-4">
+            <p className="text-zinc-400">
+              Comments section coming soon...
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────
 //  APP ROOT
 // ─────────────────────────────────────────────────
 
 export default function App() {
   const [activeNav, setActiveNav] = useState("Home");
+  const [selectedArticle, setSelectedArticle] = useState(null);
 
   return (
     <div
@@ -834,7 +917,10 @@ export default function App() {
       style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif" }}
     >
       <LeftSidebar activeNav={activeNav} setActiveNav={setActiveNav} />
-      <MainFeed />
+      <MainFeed
+        selectedArticle={selectedArticle}
+        setSelectedArticle={setSelectedArticle}
+      />
       <RightSidebar />
     </div>
   );

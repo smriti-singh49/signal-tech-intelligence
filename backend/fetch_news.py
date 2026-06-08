@@ -6,7 +6,7 @@ API_KEY = "pub_08a73ea1cec74734811458c9533d0b6a"
 
 def fetch_tech_news():
 
-    query = "technology OR AI OR software OR startups OR programming"
+    query = "technology OR AI OR software"
 
     url = (
         f"https://newsdata.io/api/1/latest?"
@@ -15,13 +15,51 @@ def fetch_tech_news():
         f"&language=en"
     )
 
-    response = requests.get(url)
+    all_articles = []
 
-    data = response.json()
+    next_page = None
 
-    # print(data) 
+    for page_num in range(5):
 
-    articles = data.get("results", [])
+        if page_num == 0:
+
+            url = (
+                f"https://newsdata.io/api/1/latest?"
+                f"apikey={API_KEY}"
+                f"&q={query}"
+                f"&language=en"
+            )
+
+        else:
+
+            url = (
+                f"https://newsdata.io/api/1/latest?"
+                f"apikey={API_KEY}"
+                f"&q={query}"
+                f"&language=en"
+                f"&page={next_page}"
+            )
+
+        response = requests.get(url)
+
+        data = response.json()
+
+        if data.get("status") != "success":
+            break
+
+        all_articles.extend(
+            data.get("results", [])
+        )
+
+        # next_page = data.get("nextPage")
+
+        if not next_page:
+            break
+
+    articles = all_articles
+
+    # print("Total collected:", len(articles))
+    # print(f"Total articles fetched: {len(articles)}")
 
     news_data = []
 
@@ -38,33 +76,55 @@ def fetch_tech_news():
                 relevant_keywords = [
                     "ai",
                     "artificial intelligence",
-                    "software",
-                    "programming",
-                    "developer",
-                    "engineering",
-                    "technology",
-                    "startup",
                     "machine learning",
-                    "cybersecurity",
-                    "cloud",
+                    "llm",
+                    "openai",
+                    "chatgpt",
+                    "claude",
+                    "gemini",
+                    "nvidia",
                     "google",
                     "microsoft",
-                    "amazon",
-                    "apple",
                     "meta",
-                    "openai",
-                    "nvidia"
+                    "amazon",
+
+                    "software",
+                    "developer",
+                    "programming",
+                    "github",
+
+                    "cybersecurity",
+                    "hacker",
+                    "security",
+                    "malware",
+
+                    "cloud",
+                    "aws",
+                    "azure",
+                    "kubernetes",
+
+                    "startup",
+                    "funding",
+                    "y combinator"
                 ]
 
-                if any(keyword in combined_text for keyword in relevant_keywords):
+                # print(article.get("title"))
+
+                matched_keywords = [
+                    keyword
+                    for keyword in relevant_keywords
+                    if keyword in combined_text
+                ]
+
+                if len(matched_keywords) >= 2:
 
                     news_data.append({
-                    "title": article.get("title"),
-                    "description": article.get("description"),
-                    "content": article.get("content"),
-                    "source": article.get("source_id"),
-                    "link": article.get("link"),
-                    "keywords": article.get("keywords")
+                        "title": article.get("title"),
+                        "description": article.get("description"),
+                        "content": article.get("content"),
+                        "source": article.get("source_id"),
+                        "link": article.get("link"),
+                        "keywords": article.get("keywords")
                     })
 
     df = pd.DataFrame(news_data)
@@ -72,6 +132,8 @@ def fetch_tech_news():
     df.drop_duplicates(subset=["title"], inplace=True)
 
     df.reset_index(drop=True, inplace=True)
+
+    # print("Articles after filtering:", len(df))
 
     return df
 
